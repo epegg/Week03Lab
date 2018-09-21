@@ -7,8 +7,10 @@ package servlets;
 
 import domain.Note;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -27,8 +29,8 @@ public class NoteServlet extends HttpServlet {
         String path = getServletContext().getRealPath("/WEB-INF/note.txt");
         
         //attributes
-        String title;
-        String contents;
+        String title = null;
+        String contents = null;
         
         //read file
         BufferedReader br = new BufferedReader(new FileReader(new File(path)));
@@ -39,17 +41,36 @@ public class NoteServlet extends HttpServlet {
         
         //create note object
         Note note = new Note(title, contents);
-        
+          
+        //close file
+        br.close();
         
         //set attributes
         request.setAttribute("note", note);
         
+        //redirect to edit
+        if(!(request.getParameter("edit") == null)){
+            getServletContext().getRequestDispatcher("/WEB-INF/editnote.jsp").forward(request, response);
+        }
         getServletContext().getRequestDispatcher("/WEB-INF/viewnote.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+        String path = getServletContext().getRealPath("/WEB-INF/note.txt");
+
+        //attributes
+        String title = request.getParameter("title");
+        String contents = request.getParameter("contents");
+ 
+        BufferedWriter bw = new BufferedWriter(new FileWriter(path));
+            bw.write(title + "\n" + contents);
+            bw.close();
+            
+        Note n = new Note(title, contents);
+        request.setAttribute("note", n);
+         
+        getServletContext().getRequestDispatcher("/WEB-INF/viewnote.jsp").forward(request, response);
     }
 }
